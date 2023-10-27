@@ -1,0 +1,62 @@
+# Import the necessary libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+import joblib
+
+# Create a synthetic dataset for demonstration
+data = {
+    'Road_Type': ['Urban', 'Rural', 'Highway', 'Urban', 'Rural'],
+    'Weather_Conditions': ['Clear', 'Rainy', 'Foggy', 'Clear', 'Rainy'],
+    'Time_of_Day': ['Morning', 'Evening', 'Morning', 'Afternoon', 'Evening'],
+    'Speed_Limit': [40, 60, 70, 30, 50],
+    'Accident_Severity': [2, 3, 1, 2, 3]  # Synthetic accident severity values
+}
+
+df = pd.DataFrame(data)
+
+# Encoding categorical variables using one-hot encoding
+df = pd.get_dummies(df, columns=['Road_Type', 'Weather_Conditions', 'Time_of_Day'])
+
+# Define independent variables (X) and dependent variable (Y)
+X = df.drop('Accident_Severity', axis=1)
+y = df['Accident_Severity']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create and train the linear regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Evaluate the model (you can add additional evaluation metrics)
+train_score = model.score(X_train, y_train)
+test_score = model.score(X_test, y_test)
+
+print(f"Training R-squared: {train_score:.2f}")
+print(f"Testing R-squared: {test_score:.2f}")
+
+# Save the model for future use
+joblib.dump(model, 'accident_severity_model.pkl')
+
+# Load the saved model
+loaded_model = joblib.load('accident_severity_model.pkl')
+
+# Create a hypothetical set of independent variables for prediction
+new_data = pd.DataFrame({
+    'Road_Type_Rural': [1],
+    'Road_Type_Urban': [0],
+    'Road_Type_Highway': [0],
+    'Weather_Conditions_Clear': [0],
+    'Weather_Conditions_Rainy': [1],
+    'Weather_Conditions_Foggy': [0],
+    'Time_of_Day_Morning': [1],
+    'Time_of_Day_Evening': [0],
+    'Time_of_Day_Afternoon': [0],
+    'Speed_Limit': [60]
+}, columns=X_train.columns)  # Ensure columns match X_train
+
+# Make a prediction
+predicted_severity = loaded_model.predict(new_data)
+
+print("Predicted Accident Severity:", predicted_severity)
